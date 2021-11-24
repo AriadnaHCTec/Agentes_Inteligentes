@@ -127,7 +127,21 @@ class TraficModel(Model):
         self.grid = SingleGrid(ancho,alto,False) #NO Es Toroidal
         self.schedule = RandomActivation(self)
         self.running = True #Para la visualizacion
-
+        listaPosLimite = []
+        calleAlto = 12
+        calleAncho = 12
+        posx = [0 , 0, ancho-calleAncho, ancho-calleAncho]
+        posy = [0, alto-calleAlto, 0,alto-calleAlto]
+        index = 0
+        for ii in range(4):
+            ix = posx[ii]
+            iy = posy[ii]
+            for i in range(calleAlto):
+                for j in range(calleAncho):
+                    a = ObstacleAgent(index, self)
+                    index+=1
+                    self.schedule.add(a)
+                    self.grid.place_agent(a, (ix+i,iy+j))
         #Crear obstaculos en los limites del grid
         """numObs = (ancho * 2) + (alto * 2 - 4)
         listaPosLimite = []
@@ -147,7 +161,7 @@ class TraficModel(Model):
             self.grid.place_agent(a, listaPosLimite[i])"""
 
         # Create car agents
-        for i in range(self.num_agents):
+        """for i in range(self.num_agents):
             a = CarAgent(i+1000, self) #La numeracion de los agentes empieza en el 1000
             self.schedule.add(a)
             # Add the agent to a random empty grid cell
@@ -156,7 +170,7 @@ class TraficModel(Model):
             while (not self.grid.is_cell_empty((x,y))):
                 x = self.random.randrange(self.grid.width)
                 y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
+            self.grid.place_agent(a, (x, y))"""
 
     def step(self):
         '''Advance the model by one step.'''
