@@ -129,7 +129,7 @@ class TraficModel(Model):
         self.running = True #Para la visualizacion
 
         #Crear obstaculos en los limites del grid
-        numObs = (ancho * 2) + (alto * 2 - 4)
+        """numObs = (ancho * 2) + (alto * 2 - 4)
         listaPosLimite = []
         #Las dos columnas límite
         for col in [0,ancho-1]:
@@ -140,11 +140,11 @@ class TraficModel(Model):
             for ren in [0,alto-1]:
                 listaPosLimite.append((col,ren))
         print(listaPosLimite)
-
-        for i in range(numObs):
+        """
+        """for i in range(numObs):
             a = ObstacleAgent(i, self)
             self.schedule.add(a)
-            self.grid.place_agent(a, listaPosLimite[i])
+            self.grid.place_agent(a, listaPosLimite[i])"""
 
         # Create car agents
         for i in range(self.num_agents):

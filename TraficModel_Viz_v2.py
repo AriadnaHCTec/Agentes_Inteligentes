@@ -16,7 +16,7 @@ def agent_portrayal(agent):
                  "Filled": "true",
                  "Layer": 0,
                  "Color": "red",
-                 "r": 0.5}
+                 "r": 0.5}  
 
     if (isinstance(agent,ObstacleAgent)):
         portrayal["Color"] = "grey"
@@ -24,10 +24,10 @@ def agent_portrayal(agent):
         portrayal["r"] = 0.2
     return portrayal
 
-grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
+grid = CanvasGrid(agent_portrayal, 32, 32, 500, 500)
 server = ModularServer(TraficModel,
                        [grid],
                        "Trafic Model",
-                       {"N":5, "ancho":10, "alto":10})
+                       {"N":5, "ancho":32, "alto":32})
 server.port = 8521 # The default
 server.launch()
