@@ -22,6 +22,10 @@ def agent_portrayal(agent):
         portrayal["Color"] = "grey"
         portrayal["Layer"] = 1
         portrayal["r"] = 0.2
+    if (isinstance(agent,TrafficLightsAgent)):
+        portrayal["Color"] = "green"
+        portrayal["Layer"] = 1
+        portrayal["r"] = 0.4
     return portrayal
 
 grid = CanvasGrid(agent_portrayal, 32, 32, 500, 500)

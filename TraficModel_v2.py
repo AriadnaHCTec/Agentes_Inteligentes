@@ -12,6 +12,8 @@ from mesa.time import RandomActivation
 from mesa.space import Grid, SingleGrid
 import random
 
+
+
 class CarAgent(Agent):
     """ Modelo para un auto """
     def __init__(self, unique_id, model):
@@ -102,13 +104,120 @@ class CarAgent(Agent):
             self.sentido = nuevoSentido
             print(f"Cambiando sentido a {self.sentido}\n")
 
-
-
     def step(self):
         """ En cada paso moverse aleatoriamente """
         self.direccion = random.randint(0,3)
         print(f"Agente: {self.unique_id} movimiento {self.direccion}")
         self.move()
+
+# $$$
+class TrafficLightsAgent(Agent):
+    """Modelo para un semáforo"""
+    """Sólo van a existir 2 semáforos"""
+    """Semáforo 1: Carril Horizontal
+       Semáfoto 2: Carril Vertical"""
+    """Estado
+       0 = Rojo
+       1 = Amarillo
+       2 = Verde"""
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+        self.estado = 0
+
+    def contarCarros(self, idSemaforo):
+        """Opcion: True -> verificar solo las casillas del semáforo actual
+           Opcion: False -> verificar las casillas de ambos"""
+        """Coordenadas primero avanza x y luego y"""
+        if(self.unique_id == idSemaforo):
+            for i in range(12,20):
+                for j in range(12):
+                    cellmate = self.model.grid.get_cell_list_contents((i,j))
+                    if(cellmate != []):
+                        if type(cellmate[0]) is CarAgent:
+                            self.model.contSemaforo1+=1
+                            print("carro gg en semaforo 1")
+            print("contSemaforo1=",self.model.contSemaforo1)
+        else:
+            for i in range(12):
+                for j in range(12,20):
+                    cellmate = self.model.grid.get_cell_list_contents((i,j))
+                    if(cellmate != []):
+                        if type(cellmate[0]) is CarAgent:
+                            self.model.contSemaforo2+=1
+                            print("carro gg en semaforo 2")
+            print("contSemaforo2=",self.model.contSemaforo2)
+
+    def cambiarEstado(self, semaforoVerde):
+        """Se le puede agregar un parametro que se haga valido cuando ya vaya a cambiar a rojo
+           y que se cambie el color a amarillo"""
+        if semaforoVerde == 3001:
+            print("Semaforo 1 esta en verde")
+            print("Semaforo 2 esta rojo")
+            self.luzSemaforo1 = 0
+            self.luzSemaforo2 = 2
+        else:
+            print("Semaforo 1 esta en rojo")
+            print("Semaforo 2 esta en verde")
+            self.luzSemaforo1 = 2
+            self.luzSemaforo2 = 0
+
+    def calcularPrioridad(self):
+        self.contarCarros(3001)
+        self.contarCarros(3002)
+        cont_s1 = self.model.contSemaforo1
+        cont_s2 = self.model.contSemaforo2
+        if cont_s1 > 0 and cont_s2 > 0:
+            maxValue = max(cont_s1,cont_s2)
+            if maxValue == cont_s1:
+                self.model.prioridadSemaforo1 = cont_s1 + 6 #dar tiempo (steps) del numero del carro más 6
+                self.model.controlPrioridad = 3001
+                #self.model.prioridadSemaforo2 = 0
+            else:
+                #self.model.prioridadSemaforo1 = 0
+                self.model.prioridadSemaforo2 = cont_s2 + 6 #dar tiempo (steps) del numero del carro más 6
+                self.model.controlPrioridad = 3002
+
+        elif cont_s1 > 0 and cont_s2 == 0:
+            self.model.prioridadSemaforo1 = cont_s1 + 6 #dar tiempo (steps) del numero del carro más 6
+            self.model.controlPrioridad = 3001
+
+        elif cont_s1 == 0 and cont_s2 > 0:
+            self.model.prioridadSemaforo2 = cont_s2 + 6 #dar tiempo (steps) del numero del carro más 6
+            self.model.controlPrioridad = 3002
+
+        else:
+            if random.randint(3001,3002) == 3001:
+                self.model.prioridadSemaforo1 = 4 #dar tiempo de 4
+                self.model.controlPrioridad = 3001
+            else:
+                self.model.prioridadSemaforo2 = 4 #dar tiempo de 4
+                self.model.controlPrioridad = 3002
+            
+    def checarPrioridad(self):
+        if self.model.controlPrioridad == 3001:
+            self.model.prioridadSemaforo1 -= 1
+            self.cambiarEstado(3001)
+            #return 3001, self.model.prioridadSemaforo1
+        else:
+            self.model.prioridadSemaforo2 -= 1
+            self.cambiarEstado(3002)
+            #return 3002, self.model.prioridadSemaforo2
+        
+    def move(self):
+        if self.model.controlPrioridad == 3001:
+            if self.model.prioridadSemaforo1 == 0:
+                self.calcularPrioridad()
+            else:
+                self.checarPrioridad()
+        else:
+            if self.model.prioridadSemaforo2 == 0:
+                self.calcularPrioridad()
+            else:
+                self.checarPrioridad()
+
+    def step(self):
+        self.move()
+
 
 class ObstacleAgent(Agent):
     """ Modelo para un Obstaculo """
@@ -118,7 +227,6 @@ class ObstacleAgent(Agent):
     def step(self):
         # The agent's step will go here.
         pass  
-
 
 class TraficModel(Model):
     """ Modelo para los autos """
@@ -142,6 +250,36 @@ class TraficModel(Model):
                     index+=1
                     self.schedule.add(a)
                     self.grid.place_agent(a, (ix+i,iy+j))
+                    #Eliminar obstaculos en las posiciones donde irán los semáforos
+                    if(ix+i ==11 and iy+j==20 or ix+i ==20 and iy+j==11):
+                        self.grid._remove_agent((ix+i,iy+j), a)
+
+        #  $$$
+        self.contSemaforo1 = 0
+        self.contSemaforo2 = 0
+        self.prioridadSemaforo1 = 1
+        self.prioridadSemaforo2 = 1
+        self.luzSemaforo1 = 0
+        self.luzSemaforo2 = 2
+        self.tiempo = 1
+        self.controlPrioridad = 3001
+        #Crear semáforos
+        tlPos = [(20,11),(11,20)]
+        for i,positionTL in enumerate(tlPos):
+            trafficLights = TrafficLightsAgent(3000+i+1,self)
+            self.schedule.add(trafficLights)
+            self.grid.place_agent(trafficLights, positionTL)
+            print("Semaforo",i,3000+1+i)
+
+        a = CarAgent(8000, self)
+        self.schedule.add(a)
+        self.grid.place_agent(a, (10,14))
+
+        b = CarAgent(8001, self)
+        self.schedule.add(b)
+        self.grid.place_agent(b, (10,15))
+        # $$$
+
         #Crear obstaculos en los limites del grid
         """numObs = (ancho * 2) + (alto * 2 - 4)
         listaPosLimite = []
@@ -174,4 +312,6 @@ class TraficModel(Model):
 
     def step(self):
         '''Advance the model by one step.'''
+        self.contSemaforo1 = 0# $$$
+        self.contSemaforo2 = 0#  $$$
         self.schedule.step()
