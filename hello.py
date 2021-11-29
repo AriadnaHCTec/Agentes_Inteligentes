@@ -8,10 +8,9 @@ model = TraficModel(1, 32, 32)
 def updateTraffic(): 
     states = []
     for agent in model.schedule.agents:
-        if isinstance(agent,CarAgent):
-            states.append(agent.pos)
-    model.step()
-    return positions
+        if isinstance(agent,TrafficLightsAgent):
+            states.append(agent.estado)
+    return states
 
 def trafficToJSON(ps):
     posDICT = []
@@ -65,7 +64,7 @@ def upPositions():
 
 @app.route('/trafficLight')
 def upTraffic():  
-    return positionsToJSON(updatePositions())
+    return trafficToJSON(updateTraffic())
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=port, debug=True)
