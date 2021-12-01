@@ -9,8 +9,8 @@ cosos = [0.0, 0.0]
 def updateTraffic(): 
     states = []
     for agent in model.schedule.agents:
-        if isinstance(agent,TrafficLightMaster):
-            states.append(agent.sentido_actual)
+        if isinstance(agent,TrafficLightAgent):
+            states.append(agent.fase)
     return states
 
 def trafficToJSON(ps):

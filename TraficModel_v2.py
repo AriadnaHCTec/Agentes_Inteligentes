@@ -148,42 +148,43 @@ class CarAgent(Agent):
         print(f"Agente: {self.unique_id} movimiento {self.direccion}")
         self.move()
         """
-        if (self.pos[0] == 0 or self.pos[0] == N - 1 or self.pos[1] == 0 or self.pos[1] == N - 1):
-            self.model.grid._remove_agent(self.pos, self)
-            self.model.schedule.remove(self)
-        else:
-            if self.sentido == 0:
-                if self.pos[0] < LARGO_CALLE - 1: 
+        #if (self.pos[0] == 0 or self.pos[0] == N - 1 or self.pos[1] == 0 or self.pos[1] == N - 1):
+            #self.model.grid._remove_agent(self.pos, self)
+            #self.model.schedule.remove(self)
+            #pass
+        #else:
+        if self.sentido == 0:
+            if self.pos[0] < LARGO_CALLE - 1: 
+                self.move()
+            elif self.pos[0] == LARGO_CALLE - 1:
+                if TrafficLightMaster.fases[0] > 0:
                     self.move()
-                elif self.pos[0] == LARGO_CALLE - 1:
-                    if TrafficLightMaster.fases[0] > 0:
-                        self.move()
-                else:
+            else:
+                self.move()
+        elif self.sentido == 1:
+            if self.pos[0] > N - LARGO_CALLE: 
+                self.move()
+            elif self.pos[0] == N - LARGO_CALLE:
+                if TrafficLightMaster.fases[1] > 0:
                     self.move()
-            elif self.sentido == 1:
-                if self.pos[0] > N - LARGO_CALLE: 
+            else:
+                self.move()
+        elif self.sentido == 2:
+            if self.pos[1] < LARGO_CALLE - 1: 
+                self.move()
+            elif self.pos[1] == LARGO_CALLE - 1:
+                if TrafficLightMaster.fases[2] > 0:
                     self.move()
-                elif self.pos[0] == N - LARGO_CALLE:
-                    if TrafficLightMaster.fases[1] > 0:
-                        self.move()
-                else:
+            else:
+                self.move()
+        elif self.sentido == 3:
+            if self.pos[1] > N - LARGO_CALLE: 
+                self.move()
+            elif self.pos[1] == N - LARGO_CALLE:
+                if TrafficLightMaster.fases[3] > 0:
                     self.move()
-            elif self.sentido == 2:
-                if self.pos[1] < LARGO_CALLE - 1: 
-                    self.move()
-                elif self.pos[1] == LARGO_CALLE - 1:
-                    if TrafficLightMaster.fases[2] > 0:
-                        self.move()
-                else:
-                    self.move()
-            elif self.sentido == 3:
-                if self.pos[1] > N - LARGO_CALLE: 
-                    self.move()
-                elif self.pos[1] == N - LARGO_CALLE:
-                    if TrafficLightMaster.fases[3] > 0:
-                        self.move()
-                else:
-                    self.move()
+            else:
+                self.move()
 
 
 # In[4]:
@@ -291,7 +292,7 @@ class TraficModel(Model):
     """ Modelo para los autos """
     def __init__(self, N,ancho,alto):
         self.num_agents = N
-        self.grid = SingleGrid(ancho,alto,False) #NO Es Toroidal
+        self.grid = SingleGrid(ancho,alto,True) #NO Es Toroidal
         self.schedule = RandomActivation(self)
         self.running = True #Para la visualizacion
         listaPosLimite = []
@@ -354,6 +355,20 @@ class TraficModel(Model):
         a.futuro_sentido = 2
         self.schedule.add(a)
         self.grid.place_agent(a ,(30,18))
+
+
+        a = CarAgent(1005, self)
+        a.sentido = 1
+        a.futuro_sentido = 2
+        self.schedule.add(a)
+        self.grid.place_agent(a ,(30,17))
+
+
+        a = CarAgent(1006, self)
+        a.sentido = 1
+        a.futuro_sentido = 2
+        self.schedule.add(a)
+        self.grid.place_agent(a ,(29,17))
         #"""
         #Crear obstaculos en los limites del grid
         """numObs = (ancho * 2) + (alto * 2 - 4)
@@ -388,45 +403,3 @@ class TraficModel(Model):
     def step(self):
         '''Advance the model by one step.'''
         self.schedule.step()
-
-
-# # Representación visual
-
-# In[8]:
-
-
-"""def agent_portrayal(agent):
-    portrayal = {"Shape": "circle",
-                 "Filled": "true",
-                 "Layer": 0,
-                 "Color": "red",
-                 "r": 0.5}  
-
-    if (isinstance(agent,ObstacleAgent)):
-        portrayal["Color"] = "grey"
-        portrayal["Layer"] = 1
-        portrayal["r"] = 0.2
-    elif (isinstance(agent, CarAgent)):
-        portrayal["Shape"] = "rect"
-        portrayal["w"] = 0.4
-        portrayal["h"] = 0.4
-    elif (isinstance(agent,TrafficLightAgent)):
-        if agent.fase == 0: #Rojo
-            portrayal["Color"] = "red"
-        elif agent.fase == 1:
-            portrayal["Color"] = "yellow"
-        elif agent.fase == 2:
-            portrayal["Color"] = "green"
-        else:
-            portrayal["Color"] = "black"
-            print("Fased semáforo inválida.")
-    return portrayal
-
-grid = CanvasGrid(agent_portrayal, 32, 32, 500, 500)
-server = ModularServer(TraficModel,
-                       [grid],
-                       "Trafic Model",
-                       {"N":5, "ancho":32, "alto":32})
-server.port = 8521 # The default
-server.launch()"""
-
