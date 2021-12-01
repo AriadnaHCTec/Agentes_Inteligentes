@@ -14,7 +14,7 @@ width = 30
 height = 30
 
 # Set the number of agents here:
-flock = [Boid(*np.random.rand(2)*30, width, height) for _ in range(20)]
+flock = [Boid(*np.random.rand(2)*30, width, height) for _ in range(2)]
 
 def updatePositions():
     global flock
@@ -64,7 +64,7 @@ class Server(BaseHTTPRequestHandler):
         self.wfile.write(resp.encode('utf-8'))
 
 
-def run(server_class=HTTPServer, handler_class=Server, port=8686):
+def run(server_class=HTTPServer, handler_class=Server, port=8585):
     logging.basicConfig(level=logging.INFO)
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)

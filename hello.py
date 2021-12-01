@@ -5,11 +5,12 @@ from TraficModel_v2 import *
 
 model = TraficModel(1, 32, 32)
 
+cosos = [0.0, 0.0]
 def updateTraffic(): 
     states = []
     for agent in model.schedule.agents:
-        if isinstance(agent,TrafficLightsAgent):
-            states.append(agent.estado)
+        if isinstance(agent,TrafficLightMaster):
+            states.append(agent.sentido_actual)
     return states
 
 def trafficToJSON(ps):
@@ -18,7 +19,7 @@ def trafficToJSON(ps):
         pos = {
             "state" : p
         }
-    posDICT.append(pos)    
+        posDICT.append(pos)    
     return json.dumps(posDICT)
 
 anterior = (0,0)
@@ -35,6 +36,7 @@ def updatePositions():
     return positions
 
 def positionsToJSON(ps):
+    global cosos
     posDICT = []
     for p in ps:
         pos = {
@@ -42,7 +44,8 @@ def positionsToJSON(ps):
             "z" : float(p[1]),
             "y" : float(0.0)
         }
-    posDICT.append(pos)
+        posDICT.append(pos)
+    cosos[0]+=.1
     return json.dumps(posDICT)
 
 app = Flask(__name__, static_url_path='')

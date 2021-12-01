@@ -1,17 +1,34 @@
-# -*- coding: utf-8 -*-
-"""
-Modelos de Agente y del medio ambiente
-Version 2 - Movimiento aleatorio del auto en el grid
+#!/usr/bin/env python
+# coding: utf-8
 
-Solución al reto de TC2008B semestre AgostoDiciembre 2021
-Autor: Jorge Ramírez Uresti
-"""
+# In[1]:
+
 
 from mesa import Agent, Model, model
 from mesa.time import RandomActivation
 from mesa.space import Grid, SingleGrid
+from mesa.visualization.modules import CanvasGrid
+from mesa.visualization.ModularVisualization import ModularServer
 import random
 
+
+# In[2]:
+
+
+# "Constantes"
+N = 32                               #Dimensión de la cuadrícula
+LARGO_CALLE = 12                     #en casillas
+ANCHO_CALLE = 2                      #en casillas
+L_INTER = 8                          #dimensión de la intersección en casillas
+POS_INTER = (12,12)                  #esquina inferior izquirda de la intersección (x,y)
+POS_CALLES = [(0, 13), (31, 18), (18, 0), (13,31)]  #Posición (x,y) del inicio del primer carril, por sentido
+POS_VUELTA = {"0-D": (13, 13), "0-I": (17,14), "1-D": (18,18), "1-I": (14,17),
+             "2-D": (18, 13), "2-I": (17,17), "3-D": (13,18), "3-I": (14,14)}
+POS_SF = {"S0": (20, 12), "S1": (11,19), "S2": (19,20), "S3": (12,11)}
+TIEMPO_MAXIMO = 60                   #en steps
+
+
+# In[3]:
 
 
 class CarAgent(Agent):
@@ -20,7 +37,8 @@ class CarAgent(Agent):
         super().__init__(unique_id, model)
         random.seed()
         self.direccion = 0 #Frente 0, Derecha 1, Izquierda 2, Atras 3
-        self.sentido = 3 #Derecha 0, Izquierda 1, Arriba 2, Abajo 3
+        self.sentido = 0 #Derecha 0, Izquierda 1, Arriba 2, Abajo 3
+        self.futuro_sentido = 0 #La acción que tomará al cruzar la primera línea del cruce
         #El sentido toma en consideracion que las columnas crecen a la derecha y los renglones
         # crecen hacia arriba
 
@@ -90,133 +108,170 @@ class CarAgent(Agent):
         for pos in possible_steps:
             freeSpaces.append(self.model.grid.is_cell_empty(pos))
         print(freeSpaces)
-
+        
+        #Cambiar de sentido si está en la casilla indicada
+        if self.sentido != self.futuro_sentido:
+            if self.sentido == 0:    #Derecha                             
+                if (self.futuro_sentido == 3 and self.pos == POS_VUELTA["0-D"]) or self.pos == POS_VUELTA["0-I"]:
+                    self.sentido = self.futuro_sentido
+            elif self.sentido == 1:  #Izquierda
+                if (self.futuro_sentido == 2 and self.pos == POS_VUELTA["1-D"]) or self.pos == POS_VUELTA["1-I"]:
+                    self.sentido = self.futuro_sentido
+            elif self.sentido == 2:  #Arriba
+                if (self.futuro_sentido == 0 and self.pos == POS_VUELTA["2-D"]) or self.pos == POS_VUELTA["2-I"]:
+                    self.sentido = self.futuro_sentido
+            elif self.sentido == 3:  #Abajo
+                if (self.futuro_sentido == 1 and self.pos == POS_VUELTA["3-D"]) or self.pos == POS_VUELTA["3-I"]:
+                    self.sentido = self.futuro_sentido
+            else:
+                print("Sentido inválido.")
+                    
         #Movimiento tomando en consideración la dirección y si está libre ese espacio
         free,newPos = self.isFreeMyDirection(freeSpaces,possible_steps)
         if free:
             self.model.grid.move_agent(self,newPos)
             print(f"Se mueve de {myPosition} a {newPos} porque va hacia {self.direccion}\n")
         else:
+            print("wat")
+            """
             print(f"No se puede mover en sentido {self.sentido}, ubicación ocupada.")
             nuevoSentido = random.randint(0,3)
             while (nuevoSentido == self.sentido):
                 nuevoSentido = random.randint(0,3)
             self.sentido = nuevoSentido
             print(f"Cambiando sentido a {self.sentido}\n")
-
+            """
+            
     def step(self):
-        """ En cada paso moverse aleatoriamente """
+        """ En cada paso moverse aleatoriamente
         self.direccion = random.randint(0,3)
         print(f"Agente: {self.unique_id} movimiento {self.direccion}")
         self.move()
-
-# $$$
-class TrafficLightsAgent(Agent):
-    """Modelo para un semáforo"""
-    """Sólo van a existir 2 semáforos"""
-    """Semáforo 1: Carril Horizontal
-       Semáfoto 2: Carril Vertical"""
-    """Estado
-       0 = Rojo
-       1 = Amarillo
-       2 = Verde"""
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
-        self.estado = 0
-
-    def contarCarros(self, idSemaforo):
-        """Opcion: True -> verificar solo las casillas del semáforo actual
-           Opcion: False -> verificar las casillas de ambos"""
-        """Coordenadas primero avanza x y luego y"""
-        if(self.unique_id == idSemaforo):
-            for i in range(12,20):
-                for j in range(12):
-                    cellmate = self.model.grid.get_cell_list_contents((i,j))
-                    if(cellmate != []):
-                        if type(cellmate[0]) is CarAgent:
-                            self.model.contSemaforo1+=1
-                            print("carro gg en semaforo 1")
-            print("contSemaforo1=",self.model.contSemaforo1)
+        """
+        if (self.pos[0] == 0 or self.pos[0] == N - 1 or self.pos[1] == 0 or self.pos[1] == N - 1):
+            self.model.grid._remove_agent(self.pos, self)
+            self.model.schedule.remove(self)
         else:
-            for i in range(12):
-                for j in range(12,20):
-                    cellmate = self.model.grid.get_cell_list_contents((i,j))
-                    if(cellmate != []):
-                        if type(cellmate[0]) is CarAgent:
-                            self.model.contSemaforo2+=1
-                            print("carro gg en semaforo 2")
-            print("contSemaforo2=",self.model.contSemaforo2)
+            if self.sentido == 0:
+                if self.pos[0] < LARGO_CALLE - 1: 
+                    self.move()
+                elif self.pos[0] == LARGO_CALLE - 1:
+                    if TrafficLightMaster.fases[0] > 0:
+                        self.move()
+                else:
+                    self.move()
+            elif self.sentido == 1:
+                if self.pos[0] > N - LARGO_CALLE: 
+                    self.move()
+                elif self.pos[0] == N - LARGO_CALLE:
+                    if TrafficLightMaster.fases[1] > 0:
+                        self.move()
+                else:
+                    self.move()
+            elif self.sentido == 2:
+                if self.pos[1] < LARGO_CALLE - 1: 
+                    self.move()
+                elif self.pos[1] == LARGO_CALLE - 1:
+                    if TrafficLightMaster.fases[2] > 0:
+                        self.move()
+                else:
+                    self.move()
+            elif self.sentido == 3:
+                if self.pos[1] > N - LARGO_CALLE: 
+                    self.move()
+                elif self.pos[1] == N - LARGO_CALLE:
+                    if TrafficLightMaster.fases[3] > 0:
+                        self.move()
+                else:
+                    self.move()
 
-    def cambiarEstado(self, semaforoVerde):
-        """Se le puede agregar un parametro que se haga valido cuando ya vaya a cambiar a rojo
-           y que se cambie el color a amarillo"""
-        if semaforoVerde == 3001:
-            print("Semaforo 1 esta en verde")
-            print("Semaforo 2 esta rojo")
-            self.luzSemaforo1 = 0
-            self.luzSemaforo2 = 2
-        else:
-            print("Semaforo 1 esta en rojo")
-            print("Semaforo 2 esta en verde")
-            self.luzSemaforo1 = 2
-            self.luzSemaforo2 = 0
 
-    def calcularPrioridad(self):
-        self.contarCarros(3001)
-        self.contarCarros(3002)
-        cont_s1 = self.model.contSemaforo1
-        cont_s2 = self.model.contSemaforo2
-        if cont_s1 > 0 and cont_s2 > 0:
-            maxValue = max(cont_s1,cont_s2)
-            if maxValue == cont_s1:
-                self.model.prioridadSemaforo1 = cont_s1 + 6 #dar tiempo (steps) del numero del carro más 6
-                self.model.controlPrioridad = 3001
-                #self.model.prioridadSemaforo2 = 0
-            else:
-                #self.model.prioridadSemaforo1 = 0
-                self.model.prioridadSemaforo2 = cont_s2 + 6 #dar tiempo (steps) del numero del carro más 6
-                self.model.controlPrioridad = 3002
+# In[4]:
 
-        elif cont_s1 > 0 and cont_s2 == 0:
-            self.model.prioridadSemaforo1 = cont_s1 + 6 #dar tiempo (steps) del numero del carro más 6
-            self.model.controlPrioridad = 3001
 
-        elif cont_s1 == 0 and cont_s2 > 0:
-            self.model.prioridadSemaforo2 = cont_s2 + 6 #dar tiempo (steps) del numero del carro más 6
-            self.model.controlPrioridad = 3002
-
-        else:
-            if random.randint(3001,3002) == 3001:
-                self.model.prioridadSemaforo1 = 4 #dar tiempo de 4
-                self.model.controlPrioridad = 3001
-            else:
-                self.model.prioridadSemaforo2 = 4 #dar tiempo de 4
-                self.model.controlPrioridad = 3002
-            
-    def checarPrioridad(self):
-        if self.model.controlPrioridad == 3001:
-            self.model.prioridadSemaforo1 -= 1
-            self.cambiarEstado(3001)
-            #return 3001, self.model.prioridadSemaforo1
-        else:
-            self.model.prioridadSemaforo2 -= 1
-            self.cambiarEstado(3002)
-            #return 3002, self.model.prioridadSemaforo2
+class TrafficLightMaster():
+    sentido_actual = 0
+    fases = [0, 0, 0, 0]                          #Fases por semáforo (los indices son iguales que el sentido)
+    t_fase = -1                                   #Tiempo restante del semáforo en turno
+    flujos = [0, 0, 0, 0]                         #Cantidad de carros por sentido (los indices son iguales que el sentido)
+    
+    @classmethod
+    def cambiarTurno(cls):
+        cls.sentido_actual = (cls.sentido_actual + 1) % 4
+        print("Turno actual: " + str(cls.sentido_actual))
         
-    def move(self):
-        if self.model.controlPrioridad == 3001:
-            if self.model.prioridadSemaforo1 == 0:
-                self.calcularPrioridad()
-            else:
-                self.checarPrioridad()
-        else:
-            if self.model.prioridadSemaforo2 == 0:
-                self.calcularPrioridad()
-            else:
-                self.checarPrioridad()
+    @classmethod
+    def calcularDuracion(cls, N):
+        cls.t_fase = int(N / LARGO_CALLE * TIEMPO_MAXIMO) - 1
 
+
+# In[5]:
+
+
+class TrafficLightAgent(Agent):
+    def __init__(self, unique_id, model, sentido):
+        super().__init__(unique_id, model)
+        self.fase = 0                            # 0 = rojo, 1 = amarillo, 2 = verde
+        self.sentido = sentido
+        self.cont = 0
+        
+    def obtenerFlujo(self, sentido):
+        cont = 0
+        if sentido == 0:                       #Derecha
+            for i in range(LARGO_CALLE):
+                for j in range(ANCHO_CALLE):
+                    cont += int(not self.model.grid.is_cell_empty((i, POS_CALLES[0][1] + j)))
+                
+        elif sentido == 1:                     #Izquierda
+            for i in range(LARGO_CALLE):
+                for j in range(ANCHO_CALLE):
+                    cont += int(not self.model.grid.is_cell_empty((POS_CALLES[1][0] - i, POS_CALLES[1][1] - j)))
+                    
+        elif sentido == 2:                     #Arriba
+            for i in range(ANCHO_CALLE):
+                for j in range(LARGO_CALLE):
+                    cont += int(not self.model.grid.is_cell_empty((POS_CALLES[2][0] - i, j)))
+                    
+        elif sentido == 3:                     #Abajo
+            for i in range(ANCHO_CALLE):
+                for j in range(LARGO_CALLE):
+                    cont += int(not self.model.grid.is_cell_empty((POS_CALLES[3][0] + i, POS_CALLES[3][1] - j)))
+        else:
+            print("Sentido inválido")
+            
+        TrafficLightMaster.flujos[sentido] = cont
+        
+    def isInterVacia(self):
+        for i in range(POS_INTER[0], POS_INTER[0] + L_INTER):
+            for j in range(POS_INTER[1], POS_INTER[1] + L_INTER):
+                if not self.model.grid.is_cell_empty((i, j)):
+                    print("Celda: " + str(i) + " , " + str(j) + " no esta vacia.") 
+                    return False
+        
+        return True
+    
     def step(self):
-        self.move()
+        if self.sentido == TrafficLightMaster.sentido_actual:
+            if TrafficLightMaster.t_fase > 0:
+                self.fase = 2
+                TrafficLightMaster.fases[self.sentido] = 2
+                TrafficLightMaster.t_fase -=1
+            elif TrafficLightMaster.t_fase == 0:
+                self.fase = 1
+                TrafficLightMaster.fases[self.sentido] = 1
+                TrafficLightMaster.t_fase -=1
+            else:
+                self.fase = 0
+                TrafficLightMaster.fases[self.sentido] = 0
+                if self.isInterVacia():
+                    TrafficLightMaster.cambiarTurno()
+                    self.obtenerFlujo(TrafficLightMaster.sentido_actual)
+                    print("Flujo: " + str(TrafficLightMaster.flujos[TrafficLightMaster.sentido_actual]))
+                    TrafficLightMaster.calcularDuracion(TrafficLightMaster.flujos[TrafficLightMaster.sentido_actual])
+                    
+
+
+# In[6]:
 
 
 class ObstacleAgent(Agent):
@@ -227,6 +282,10 @@ class ObstacleAgent(Agent):
     def step(self):
         # The agent's step will go here.
         pass  
+
+
+# In[7]:
+
 
 class TraficModel(Model):
     """ Modelo para los autos """
@@ -250,36 +309,52 @@ class TraficModel(Model):
                     index+=1
                     self.schedule.add(a)
                     self.grid.place_agent(a, (ix+i,iy+j))
-                    #Eliminar obstaculos en las posiciones donde irán los semáforos
-                    if(ix+i ==11 and iy+j==20 or ix+i ==20 and iy+j==11):
-                        self.grid._remove_agent((ix+i,iy+j), a)
-
-        #  $$$
-        self.contSemaforo1 = 0
-        self.contSemaforo2 = 0
-        self.prioridadSemaforo1 = 1
-        self.prioridadSemaforo2 = 1
-        self.luzSemaforo1 = 0
-        self.luzSemaforo2 = 2
-        self.tiempo = 1
-        self.controlPrioridad = 3001
-        #Crear semáforos
-        tlPos = [(20,11),(11,20)]
-        for i,positionTL in enumerate(tlPos):
-            trafficLights = TrafficLightsAgent(3000+i+1,self)
-            self.schedule.add(trafficLights)
-            self.grid.place_agent(trafficLights, positionTL)
-            print("Semaforo",i,3000+1+i)
-
-        a = CarAgent(8000, self)
+        #Añadir semáforos
+        s0 = TrafficLightAgent(2000, self, 0)
+        s1 = TrafficLightAgent(2001, self, 1)
+        s2 = TrafficLightAgent(2002, self, 2)
+        s3 = TrafficLightAgent(2003, self, 3)
+        self.schedule.add(s0)
+        self.schedule.add(s1)
+        self.schedule.add(s2)
+        self.schedule.add(s3)
+        self.grid.place_agent(s0 ,POS_SF["S0"])
+        self.grid.place_agent(s1 ,POS_SF["S1"])
+        self.grid.place_agent(s2 ,POS_SF["S2"])
+        self.grid.place_agent(s3 ,POS_SF["S3"])
+        #Inician hacia la derecha
+        #"""
+        a = CarAgent(1000, self)
+        b = CarAgent(1001, self)
+        a.futuro_sentido = 3
+        b.futuro_sentido = 2
         self.schedule.add(a)
-        self.grid.place_agent(a, (10,14))
-
-        b = CarAgent(8001, self)
         self.schedule.add(b)
-        self.grid.place_agent(b, (10,15))
-        # $$$
-
+        self.grid.place_agent(a ,(1,13))
+        self.grid.place_agent(b ,(1,14))
+        #"""
+        #Inician hacia arriba
+        a = CarAgent(1002, self)
+        a.sentido = 2
+        a.futuro_sentido = 0
+        self.schedule.add(a)
+        self.grid.place_agent(a ,(18,1))
+        #Inician hacia abajo
+        #"""
+        a = CarAgent(1003, self)
+        a.sentido = 3
+        a.futuro_sentido = 1
+        self.schedule.add(a)
+        self.grid.place_agent(a ,(13,30))
+        #"""
+        #Inician hacia la izquierda
+        #"""
+        a = CarAgent(1004, self)
+        a.sentido = 1
+        a.futuro_sentido = 2
+        self.schedule.add(a)
+        self.grid.place_agent(a ,(30,18))
+        #"""
         #Crear obstaculos en los limites del grid
         """numObs = (ancho * 2) + (alto * 2 - 4)
         listaPosLimite = []
@@ -312,6 +387,46 @@ class TraficModel(Model):
 
     def step(self):
         '''Advance the model by one step.'''
-        self.contSemaforo1 = 0# $$$
-        self.contSemaforo2 = 0#  $$$
         self.schedule.step()
+
+
+# # Representación visual
+
+# In[8]:
+
+
+"""def agent_portrayal(agent):
+    portrayal = {"Shape": "circle",
+                 "Filled": "true",
+                 "Layer": 0,
+                 "Color": "red",
+                 "r": 0.5}  
+
+    if (isinstance(agent,ObstacleAgent)):
+        portrayal["Color"] = "grey"
+        portrayal["Layer"] = 1
+        portrayal["r"] = 0.2
+    elif (isinstance(agent, CarAgent)):
+        portrayal["Shape"] = "rect"
+        portrayal["w"] = 0.4
+        portrayal["h"] = 0.4
+    elif (isinstance(agent,TrafficLightAgent)):
+        if agent.fase == 0: #Rojo
+            portrayal["Color"] = "red"
+        elif agent.fase == 1:
+            portrayal["Color"] = "yellow"
+        elif agent.fase == 2:
+            portrayal["Color"] = "green"
+        else:
+            portrayal["Color"] = "black"
+            print("Fased semáforo inválida.")
+    return portrayal
+
+grid = CanvasGrid(agent_portrayal, 32, 32, 500, 500)
+server = ModularServer(TraficModel,
+                       [grid],
+                       "Trafic Model",
+                       {"N":5, "ancho":32, "alto":32})
+server.port = 8521 # The default
+server.launch()"""
+
