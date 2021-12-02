@@ -5,7 +5,6 @@ from TraficModel_v2 import *
 
 model = TraficModel(1, 32, 32)
 
-cosos = [0.0, 0.0]
 def updateTraffic(): 
     states = []
     for agent in model.schedule.agents:
@@ -22,21 +21,15 @@ def trafficToJSON(ps):
         posDICT.append(pos)    
     return json.dumps(posDICT)
 
-anterior = (0,0)
 def updatePositions(): 
-    global anterior
     positions = []
-    positions.append(anterior)
     for agent in model.schedule.agents:
-        print(agent)
         if isinstance(agent,CarAgent):
             positions.append(agent.pos)    
-            anterior = agent.pos
     model.step()
     return positions
 
 def positionsToJSON(ps):
-    global cosos
     posDICT = []
     for p in ps:
         pos = {
@@ -45,7 +38,6 @@ def positionsToJSON(ps):
             "y" : float(0.0)
         }
         posDICT.append(pos)
-    cosos[0]+=.1
     return json.dumps(posDICT)
 
 app = Flask(__name__, static_url_path='')

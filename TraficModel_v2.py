@@ -359,14 +359,14 @@ class TraficModel(Model):
 
         a = CarAgent(1005, self)
         a.sentido = 1
-        a.futuro_sentido = 2
+        a.futuro_sentido = 3
         self.schedule.add(a)
         self.grid.place_agent(a ,(30,17))
 
 
         a = CarAgent(1006, self)
         a.sentido = 1
-        a.futuro_sentido = 2
+        a.futuro_sentido = 3
         self.schedule.add(a)
         self.grid.place_agent(a ,(29,17))
         #"""
