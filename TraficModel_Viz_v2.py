@@ -11,6 +11,11 @@ from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 
 
+# # Representación visual
+
+# In[8]:
+
+
 def agent_portrayal(agent):
     portrayal = {"Shape": "circle",
                  "Filled": "true",
@@ -22,10 +27,20 @@ def agent_portrayal(agent):
         portrayal["Color"] = "grey"
         portrayal["Layer"] = 1
         portrayal["r"] = 0.2
-    if (isinstance(agent,TrafficLightsAgent)):
-        portrayal["Color"] = "green"
-        portrayal["Layer"] = 1
-        portrayal["r"] = 0.4
+    elif (isinstance(agent, CarAgent)):
+        portrayal["Shape"] = "rect"
+        portrayal["w"] = 0.4
+        portrayal["h"] = 0.4
+    elif (isinstance(agent,TrafficLightAgent)):
+        if agent.fase == 0: #Rojo
+            portrayal["Color"] = "red"
+        elif agent.fase == 1:
+            portrayal["Color"] = "yellow"
+        elif agent.fase == 2:
+            portrayal["Color"] = "green"
+        else:
+            portrayal["Color"] = "black"
+            print("Fased semáforo inválida.")
     return portrayal
 
 grid = CanvasGrid(agent_portrayal, 32, 32, 500, 500)
