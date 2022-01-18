@@ -48,7 +48,9 @@
 ## About The Project
 <!--Add a real image of the project-->
 <!--[![Product Name Screen Shot][product-screenshot]](https://example.com)-->
-
+<p align="center">
+  <img src="https://github.com/AriadnaHCTec/Agentes_Inteligentes/blob/main/Gif/Unity.gif" alt="animated" />
+</p>
 As part of Intelligent Agents and Computer Graphics subject at Tecnológico de Monterrey, we had developed a multi-agent system that speeds up traffic with intelligent control of traffic lights.
 
 
@@ -94,10 +96,11 @@ Distributed under the  Apache-2.0 License. See `LICENSE.txt` for more informatio
 <!-- CONTACT -->
 ## Contact
 
-* Miguel Ángel Pérez López   		 
-* Ariadna Huesca Coronado - A01749161@tec.mx <a href="https://linkedin.com/in/ariadna-huesca-coronado" target="blank"><img align="center" src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555" alt="ariadna-huesca-coronado" height="28" width="110" /></a>
-* Octavio Andrick Sánchez Perusquia
-* Rubén Sánchez Mayén
+Miguel Ángel Pérez López - mikeperezlopez15@hotmail.com <a href="https://www.linkedin.com/in/migue-perez-mikeindustries" target="blank"><img align="right" src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555" alt="Migue-perez-mikeindustries" height="28" width="110"/></a><hr/>
+Ariadna Huesca Coronado - A01749161@tec.mx <a href="https://linkedin.com/in/ariadna-huesca-coronado" target="blank"><img align="right" src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555" alt="ariadna-huesca-coronado" height="28" width="110" /></a><hr/>
+Octavio Andrick Sánchez Perusquia - A01378649@tec.mx <a href="https://tinyurl.com/yxt7eyqr" target="blank"><img align="right" src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555" height="28" width="110" /></a><hr/>
+Rubén Sánchez Mayén - A01378379@tec.mx<hr/>
+<br>
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
