@@ -12,10 +12,7 @@
   <a><img src="https://www.roadsbridges.com/sites/rb/files/styles/content_type_page/public/Screen%20Shot%202021-05-06%20at%2010.43.58%20AM.png?itok=te4Bygg1" alt="Logo" width="140" height="170"/></a>
 
   <h3 align="center">Agentes Inteligentes (MESA algorithm)</h3>
-  <h5 align="center">Click <a href= "https://github.com/AriadnaHCTec/Agentes_Inteligentes_Unity" target="_blank">here</a> to see Unity part</h4>
-  
-  [go](http://stackoverflow.com){:target="_blank" rel="noopener"}
-
+  <h5 align="center">Click <a href= "https://github.com/AriadnaHCTec/Agentes_Inteligentes_Unity">here</a> to see Unity part</h4>
 </div>
 
 
